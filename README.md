@@ -4,6 +4,15 @@
  - 参考开源项目csi-host-path
  - 搭建csi项目脚手架
  - 介绍项目个功能模块
+     - cmd 项目启动命令行
+     - deploy 部署脚本
+     - pkg nfs 
+        - csi_controllerserver.go 
+        - csi_indentityserver.go 
+        - csi_nodeserver.go 
+        - nfs.go 
+        - server.go 
+        - utils.go  
  
 ## 存储分析 根据nfs 存储类型进行 功能分析 
   - hostpath、
