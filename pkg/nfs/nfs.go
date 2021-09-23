@@ -82,5 +82,5 @@ func (d *Driver) Run() {
 		NewIdentityServer(d),
 		NewControllerServer(d),
 		NewNodeServer(d))
-
+	server.Wait()
 }
