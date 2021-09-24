@@ -2,7 +2,9 @@ package nfs
 
 import (
 	"fmt"
+	"k8s.io/gengo/examples/set-gen/sets"
 	"strings"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 
@@ -26,8 +28,8 @@ func NewControllerServer(d *Driver) *ControllerServer {
 	}
 }
 
-func NewNodeServer(n *Driver) *nodeServer {
-	return &nodeServer{
+func NewNodeServer(n *Driver) *NodeServer {
+	return &NodeServer{
 		Driver:  n,
 		mounter: mount.New(""),
 	}
@@ -63,4 +65,35 @@ func logGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, h
 		logrus.Infof("GRPC response: %s", protosanitizer.StripSecrets(resp))
 	}
 	return resp, err
+}
+
+const (
+	volumeOperationAlreadyExistsFmt = "An operation with the given Volume ID %s already exists"
+)
+
+type VolumeLocks struct {
+	locks sets.String
+	mux   sync.Mutex
+}
+
+func NewVolumeLocks() *VolumeLocks {
+	return &VolumeLocks{
+		locks: sets.NewString(),
+	}
+}
+
+func (vl *VolumeLocks) TryAcquire(volumeID string) bool {
+	vl.mux.Lock()
+	defer vl.mux.Unlock()
+	if vl.locks.Has(volumeID) {
+		return false
+	}
+	vl.locks.Insert(volumeID)
+	return true
+}
+
+func (vl *VolumeLocks) Release(volumeID string) {
+	vl.mux.Lock()
+	defer vl.mux.Unlock()
+	vl.locks.Delete(volumeID)
 }
